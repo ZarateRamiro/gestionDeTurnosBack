@@ -6,6 +6,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+/** Adaptador que permite a Spring Security buscar una cuenta por email durante la autenticación. */
 @Service
 public class UsuarioSistemaDetailsService implements UserDetailsService {
   private final UsuarioSistemaRepository repository;

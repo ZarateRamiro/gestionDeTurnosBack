@@ -14,7 +14,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Service
+/** Firma y valida JWT con HMAC-SHA256; el secreto debe ser estable y privado. */
 public class JwtService {
+  // El token vence a las ocho horas; validate() rechaza tokens vencidos o con firma inválida.
   private static final long EXPIRATION_SECONDS = 8 * 60 * 60;
   private static final Pattern SUBJECT = Pattern.compile("\\\"sub\\\":\\\"([^\\\"]+)\\\"");
   private static final Pattern ROLE = Pattern.compile("\\\"rol\\\":\\\"([A-Z_]+)\\\"");

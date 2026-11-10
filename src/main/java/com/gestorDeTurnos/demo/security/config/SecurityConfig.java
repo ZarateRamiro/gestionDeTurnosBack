@@ -22,6 +22,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.util.List;
 
+/** Declara filtros, permisos por endpoint, sesiones stateless y CORS. */
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
@@ -30,9 +31,11 @@ public class SecurityConfig {
     return http
         .csrf(csrf -> csrf.disable())
         .cors(Customizer.withDefaults())
+        // La API no mantiene sesión en servidor: cada petición protegida lleva su JWT.
         .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         .exceptionHandling(errors -> errors.authenticationEntryPoint((request, response, exception) -> response.sendError(401)))
         .authorizeHttpRequests(auth -> auth
+            // Rutas públicas; el resto de /api/v1 se autoriza por rol en las reglas siguientes.
             .requestMatchers("/api/v1/auth/login", "/api/v1/auth/register", "/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
             .requestMatchers(HttpMethod.GET, "/api/v1/canchas", "/api/v1/canchas/**").permitAll()
             .requestMatchers(HttpMethod.GET, "/api/v1/disponibilidad").permitAll()
@@ -57,7 +60,11 @@ public class SecurityConfig {
   @Bean
   CorsConfigurationSource corsConfigurationSource() {
     CorsConfiguration config = new CorsConfiguration();
-    config.setAllowedOrigins(List.of("http://localhost:4200"));
+    config.setAllowedOrigins(List.of(
+        "http://localhost:4200",
+        "http://127.0.0.1:4200",
+        "http://localhost:8080",
+        "http://127.0.0.1:8080"));
     config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
     config.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept"));
     config.setExposedHeaders(List.of("Authorization"));

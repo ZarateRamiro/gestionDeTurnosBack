@@ -9,6 +9,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.util.Collection;
 import java.util.List;
 
+/** Cuenta de autenticación separada del perfil de cliente. */
 @Entity
 @Table(name = "usuarios_sistema")
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
@@ -29,7 +30,8 @@ public class UsuarioSistema implements UserDetails {
   @Column(nullable = false, length = 30)
   private RolSistema rol;
 
-  @OneToOne(fetch = FetchType.EAGER)
+  // El perfil se consulta únicamente en los flujos que necesitan datos del cliente.
+  @OneToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "cliente_id", unique = true)
   private Usuario cliente;
 

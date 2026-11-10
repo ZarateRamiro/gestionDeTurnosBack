@@ -12,15 +12,23 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+/** Endpoints públicos de registro e inicio de sesión. */
 @RestController
 @RequestMapping("/api/v1/auth")
 public class AuthController {
   private final AuthService authService;
-  public AuthController(AuthService authService) { this.authService = authService; }
-  @PostMapping("/login") public ResponseEntity<LoginResponseDTO> login(@Valid @RequestBody LoginRequestDTO request) {
+
+  public AuthController(AuthService authService) {
+    this.authService = authService;
+  }
+
+  @PostMapping("/login")
+  public ResponseEntity<LoginResponseDTO> login(@Valid @RequestBody LoginRequestDTO request) {
     return ResponseEntity.ok(authService.login(request));
   }
-  @PostMapping("/register") public ResponseEntity<LoginResponseDTO> registrar(@Valid @RequestBody RegistroRequestDTO request) {
+
+  @PostMapping("/register")
+  public ResponseEntity<LoginResponseDTO> registrar(@Valid @RequestBody RegistroRequestDTO request) {
     return ResponseEntity.status(HttpStatus.CREATED).body(authService.registrar(request));
   }
 }

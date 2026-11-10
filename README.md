@@ -77,15 +77,22 @@ Las rutas protegidas requieren `Authorization: Bearer <token>`. Swagger acepta e
 Backend:
 
 ```powershell
-.\mvnw.cmd test
+.\mvnw.cmd verify
 ```
+
+JaCoCo genera un reporte HTML en `target/site/jacoco/index.html` y hace fallar la verificación si la cobertura de líneas cae por debajo del 80%.
 
 Frontend:
 
 ```bash
 npm test -- --watch=false
+npm run test:coverage -- --watch=false
 npm run build
 ```
+
+La cobertura Angular/Vitest incluye las pantallas, rutas y servicios de aplicación; el reporte queda en `gestionDeTurnosFront/coverage/`. La meta de líneas está configurada en 80%.
+
+Para entender anotaciones y decisiones de diseño antes de la defensa, consultá la [guía técnica](docs/guia-defensa-tecnica.md).
 
 ## Planificación para Jira
 

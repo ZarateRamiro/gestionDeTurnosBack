@@ -4,6 +4,7 @@ import com.gestorDeTurnos.demo.dto.UsuarioRequestDTO;
 import com.gestorDeTurnos.demo.dto.ClienteResponseDTO;
 import java.util.List;
 
+/** Operaciones de administración sobre los datos de clientes. */
 public interface UsuarioService {
   List<ClienteResponseDTO> listar();
   ClienteResponseDTO crear(UsuarioRequestDTO request);

@@ -28,7 +28,8 @@ public class AuthServiceImpl implements AuthService {
   public AuthServiceImpl(AuthenticationManager authenticationManager, UsuarioSistemaRepository repository, JwtService jwtService, UsuarioRepository clientes, PasswordEncoder encoder) {
     this.authenticationManager = authenticationManager; this.repository = repository; this.jwtService = jwtService; this.clientes = clientes; this.encoder = encoder;
   }
-  @Override public LoginResponseDTO login(LoginRequestDTO request) {
+  // Lee el perfil LAZY al crear la respuesta sin modificar datos.
+  @Override @Transactional(readOnly = true) public LoginResponseDTO login(LoginRequestDTO request) {
     try { authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.email(), request.password())); }
     catch (Exception exception) { throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Correo o contraseña incorrectos"); }
     UsuarioSistema user = repository.findByEmailIgnoreCase(request.email())

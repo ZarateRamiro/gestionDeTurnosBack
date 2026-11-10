@@ -5,6 +5,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import java.util.Map;
 @RestControllerAdvice
+/** Traduce errores de validación y de negocio a respuestas HTTP con un cuerpo consistente. */
 public class ApiExceptionHandler {
   @ExceptionHandler(ResponseStatusException.class)
   ResponseEntity<Map<String,String>> status(ResponseStatusException e){return ResponseEntity.status(e.getStatusCode()).body(Map.of("error",e.getReason()==null?"Solicitud inválida":e.getReason()));}

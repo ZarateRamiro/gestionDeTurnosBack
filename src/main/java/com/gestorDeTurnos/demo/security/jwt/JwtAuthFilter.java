@@ -13,12 +13,14 @@ import java.io.IOException;
 import java.util.List;
 
 @Component
+/** Lee el Bearer token una vez por petición y crea la autenticación de Spring Security. */
 public class JwtAuthFilter extends OncePerRequestFilter {
   private final JwtService jwtService;
   public JwtAuthFilter(JwtService jwtService) { this.jwtService = jwtService; }
 
   @Override protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
       throws ServletException, IOException {
+    // Sin Bearer token el filtro sigue la cadena; SecurityConfig decidirá si la ruta es pública.
     String authorization = request.getHeader("Authorization");
     if (authorization != null && authorization.startsWith("Bearer ") && SecurityContextHolder.getContext().getAuthentication() == null) {
       JwtService.Claims claims = jwtService.validate(authorization.substring(7));

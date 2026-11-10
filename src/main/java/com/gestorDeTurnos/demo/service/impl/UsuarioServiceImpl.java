@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import java.util.List;
 
+/** Aplica reglas de clientes y evita borrar personas que tengan reservas históricas asociadas. */
 @Service
 public class UsuarioServiceImpl implements UsuarioService {
   private final UsuarioRepository repo;
@@ -30,6 +31,7 @@ public class UsuarioServiceImpl implements UsuarioService {
   }
   @Override public void eliminar(Long id) {
     Usuario user = findEntity(id);
+    // La restricción conserva la integridad referencial y el historial de turnos.
     if (reservaRepository.existsByUsuarioId(id)) throw new ResponseStatusException(HttpStatus.CONFLICT, "No se puede eliminar el cliente porque tiene reservas asociadas");
     repo.delete(user);
   }

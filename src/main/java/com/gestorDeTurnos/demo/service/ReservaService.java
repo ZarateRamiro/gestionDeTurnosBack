@@ -6,6 +6,7 @@ import com.gestorDeTurnos.demo.dto.SolicitudReservaRequestDTO;
 import java.time.LocalDate;
 import java.util.List;
 
+/** Reglas de aplicación para solicitar, consultar y cancelar reservas. */
 public interface ReservaService {
   ReservaResponseDTO crear(ReservaRequestDTO request);
   ReservaResponseDTO solicitar(String email, SolicitudReservaRequestDTO request);

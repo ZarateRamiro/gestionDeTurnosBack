@@ -3,6 +3,7 @@ package com.gestorDeTurnos.demo.service.impl;
 import com.gestorDeTurnos.demo.dto.HorarioDisponibleResponseDTO;
 import com.gestorDeTurnos.demo.enums.EstadoReserva;
 import com.gestorDeTurnos.demo.model.Cancha;
+import com.gestorDeTurnos.demo.model.Reserva;
 import com.gestorDeTurnos.demo.repository.CanchaRepository;
 import com.gestorDeTurnos.demo.repository.ReservaRepository;
 import com.gestorDeTurnos.demo.service.DisponibilidadService;
@@ -14,6 +15,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+/** Calcula franjas de una hora que caben en el horario de la cancha y no se superponen con reservas. */
 @Service
 public class DisponibilidadServiceImpl implements DisponibilidadService {
   private final CanchaRepository canchas;
@@ -28,10 +30,19 @@ public class DisponibilidadServiceImpl implements DisponibilidadService {
     LocalTime apertura = cancha.getHoraApertura() == null ? LocalTime.of(8, 0) : cancha.getHoraApertura();
     LocalTime cierre = cancha.getHoraCierre() == null ? LocalTime.of(23, 0) : cancha.getHoraCierre();
     List<HorarioDisponibleResponseDTO> disponibles = new ArrayList<>();
-    for (LocalTime inicio = apertura; !inicio.plusHours(duracionHoras).isAfter(cierre); inicio = inicio.plusHours(1)) {
+    // Se consulta una sola vez el día completo; cada bloque candidato se compara en memoria.
+    List<Reserva> reservasDelDia = reservas.findByCanchaIdAndFechaAndEstadoNotOrderByHoraInicio(canchaId, fecha, EstadoReserva.CANCELADA);
+    LocalTime ultimoInicio = cierre.minusHours(duracionHoras);
+    LocalTime horaActual = LocalTime.now();
+    for (LocalTime inicio = apertura; !inicio.isAfter(ultimoInicio); inicio = inicio.plusHours(1)) {
       LocalTime fin = inicio.plusHours(duracionHoras);
-      if (fecha.equals(LocalDate.now()) && !inicio.isAfter(LocalTime.now())) continue;
-      if (!reservas.existeSuperposicion(canchaId, fecha, inicio, fin, EstadoReserva.CANCELADA))
+      LocalTime horaInicio = inicio;
+      // Para hoy, oculta los bloques que ya comenzaron aunque todavía no hayan terminado.
+      if (fecha.equals(LocalDate.now()) && !inicio.isAfter(horaActual)) continue;
+      // Dos intervalos chocan cuando uno empieza antes de que termine el otro y viceversa.
+      boolean ocupada = reservasDelDia.stream()
+          .anyMatch(reserva -> reserva.getHoraInicio().isBefore(fin) && reserva.getHoraFin().isAfter(horaInicio));
+      if (!ocupada)
         disponibles.add(new HorarioDisponibleResponseDTO(inicio, fin, cancha.getPrecioPorHora().multiply(java.math.BigDecimal.valueOf(duracionHoras))));
     }
     return disponibles;

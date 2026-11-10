@@ -34,6 +34,7 @@ public class ReservaServiceImpl implements ReservaService {
     this.reservas = reservas; this.canchas = canchas; this.usuarios = usuarios; this.cuentas = cuentas;
   }
 
+  // Mantiene abiertas las relaciones LAZY mientras valida y convierte a DTO.
   @Override @Transactional
   public ReservaResponseDTO solicitar(String email, SolicitudReservaRequestDTO request) {
     UsuarioSistema cuenta = cuentas.findByEmailIgnoreCase(email).orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED));
@@ -44,12 +45,14 @@ public class ReservaServiceImpl implements ReservaService {
     return crear(new ReservaRequestDTO(request.canchaId(), cuenta.getCliente().getId(), request.fecha(), request.horaInicio(), request.horaFin(), request.observaciones()));
   }
 
-  @Override public List<ReservaResponseDTO> misReservas(String email) {
+  // El DTO usa cancha y cliente: la carga LAZY ocurre bajo una transacción de solo lectura.
+  @Override @Transactional(readOnly = true) public List<ReservaResponseDTO> misReservas(String email) {
     UsuarioSistema cuenta = cuentas.findByEmailIgnoreCase(email).orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED));
     if (cuenta.getCliente() == null) throw new ResponseStatusException(HttpStatus.FORBIDDEN, "La cuenta no tiene un perfil de cliente");
     return porUsuario(cuenta.getCliente().getId());
   }
 
+  // La escritura y el mapeo de relaciones LAZY se completan en la misma transacción.
   @Override @Transactional
   public ReservaResponseDTO crear(ReservaRequestDTO r) {
     if (!r.horaFin().isAfter(r.horaInicio())) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La hora de fin debe ser posterior a la de inicio");
@@ -67,11 +70,13 @@ public class ReservaServiceImpl implements ReservaService {
     return map(reserva);
   }
 
-  @Override public List<ReservaResponseDTO> porCanchaFecha(Long canchaId, LocalDate fecha) {
+  // map() accede a relaciones LAZY mientras arma cada respuesta.
+  @Override @Transactional(readOnly = true) public List<ReservaResponseDTO> porCanchaFecha(Long canchaId, LocalDate fecha) {
     if (!canchas.existsById(canchaId)) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Cancha no encontrada");
     return reservas.findByCanchaIdAndFechaAndEstadoNotOrderByHoraInicio(canchaId, fecha, EstadoReserva.CANCELADA).stream().map(this::map).toList();
   }
-  @Override public List<ReservaResponseDTO> porUsuario(Long id) {
+  // Consulta de solo lectura; la transacción permite mapear las relaciones LAZY.
+  @Override @Transactional(readOnly = true) public List<ReservaResponseDTO> porUsuario(Long id) {
     if (!usuarios.existsById(id)) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Cliente no encontrado");
     return reservas.findByUsuarioIdOrderByFechaDescHoraInicioDesc(id).stream().map(this::map).toList();
   }

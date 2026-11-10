@@ -7,8 +7,10 @@ import org.springframework.data.repository.query.Param;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
+/** Acceso a reservas; Spring Data implementa consultas derivadas y la consulta JPQL. */
 public interface ReservaRepository extends JpaRepository<Reserva,Long> {
   boolean existsByUsuarioId(Long usuarioId);
+  // Dos franjas se superponen si una empieza antes de que termine la otra.
   @Query("select (count(r)>0) from Reserva r where r.cancha.id=:canchaId and r.fecha=:fecha and r.estado<>:cancelada and r.horaInicio<:fin and r.horaFin>:inicio")
   boolean existeSuperposicion(@Param("canchaId") Long canchaId,@Param("fecha") LocalDate fecha,@Param("inicio") LocalTime inicio,@Param("fin") LocalTime fin,@Param("cancelada") EstadoReserva cancelada);
   List<Reserva> findByCanchaIdAndFechaAndEstadoNotOrderByHoraInicio(Long canchaId,LocalDate fecha,EstadoReserva estado);
